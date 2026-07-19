@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Learning Message | Programmer's Picnic</title>
+
+    <meta name="description"
+        content="Create personalised daily, weekly and other student learning messages and share them through WhatsApp.">
+
+    <meta name="keywords"
+        content="student learning message, WhatsApp student message, Programmer's Picnic, Champak Roy">
+
+    <meta name="author" content="Champak Roy">
+    <meta name="theme-color" content="#1769aa">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f2f7fc;
+            color: #263238;
+        }
+
+        .page-header {
+            padding: 36px 18px;
+            text-align: center;
+            color: #ffffff;
+            background: linear-gradient(135deg,
+                    #0d47a1,
+                    #1976d2);
+        }
+
+        .page-header h1 {
+            margin: 0 0 10px;
+            font-size: clamp(28px, 5vw, 42px);
+        }
+
+        .page-header p {
+            max-width: 700px;
+            margin: auto;
+            line-height: 1.6;
+            opacity: 0.96;
+        }
+
+        main {
+            max-width: 850px;
+            margin: 30px auto;
+            padding: 0 16px 40px;
+        }
+
+        .card {
+            padding: 26px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.09);
+        }
+
+        .card h2 {
+            margin: 0 0 10px;
+            color: #0d47a1;
+        }
+
+        .intro {
+            margin: 0 0 25px;
+            color: #546e7a;
+            line-height: 1.7;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            color: #37474f;
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #b0bec5;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #263238;
+            font: inherit;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #1976d2;
+            outline: 3px solid rgba(25, 118, 210, 0.14);
+        }
+
+        textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        #links {
+            min-height: 125px;
+        }
+
+        .help-text {
+            margin: 7px 0 0;
+            color: #607d8b;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .button-row,
+        .secondary-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .button-row {
+            margin-top: 8px;
+        }
+
+        .secondary-buttons {
+            margin-top: 12px;
+        }
+
+        button {
+            min-height: 50px;
+            padding: 13px 18px;
+            border: none;
+            border-radius: 9px;
+            font: inherit;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            filter: brightness(0.96);
+        }
+
+        button:focus {
+            outline: 3px solid rgba(25, 118, 210, 0.25);
+        }
+
+        .preview-button {
+            color: #0d47a1;
+            background: #e3f2fd;
+        }
+
+        .share-button {
+            color: #063d1d;
+            background: #25d366;
+        }
+
+        .copy-button {
+            color: #ffffff;
+            background: #455a64;
+        }
+
+        .reset-button {
+            color: #37474f;
+            background: #eceff1;
+        }
+
+        .preview-section {
+            display: none;
+            margin-top: 26px;
+            padding: 20px;
+            border: 1px solid #bbdefb;
+            border-radius: 12px;
+            background: #f4faff;
+        }
+
+        .preview-section h3 {
+            margin: 0 0 14px;
+            color: #0d47a1;
+        }
+
+        #messagePreview {
+            margin: 0;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            line-height: 1.75;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .status-message {
+            min-height: 24px;
+            margin: 14px 0 0;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .status-success {
+            color: #087f23;
+        }
+
+        .status-error {
+            color: #b71c1c;
+        }
+
+        .information-box {
+            margin-top: 22px;
+            padding: 15px;
+            border-left: 5px solid #1976d2;
+            border-radius: 6px;
+            background: #eaf4fd;
+            color: #37474f;
+            line-height: 1.65;
+        }
+
+        footer {
+            padding: 0 15px 28px;
+            color: #607d8b;
+            text-align: center;
+            line-height: 1.7;
+        }
+
+        @media (max-width: 650px) {
+            main {
+                margin-top: 20px;
+            }
+
+            .card {
+                padding: 21px 16px;
+            }
+
+            .form-row,
+            .button-row,
+            .secondary-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="page-header">
+        <h1>Student Learning Message</h1>
+
+        <p>
+            Prepare a personalised student message and share it through
+            WhatsApp, WhatsApp Business or another application.
+        </p>
+    </header>
+
+    <main>
+        <section class="card">
+            <h2>Create a Message</h2>
+
+            <p class="intro">
+                Select Daily, Weekly or Others, enter the details and
+                share the prepared message. No phone number is required.
+            </p>
+
+            <form id="studentForm">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="studentName">
+                            Student Name
+                        </label>
+
+                        <input type="text" id="studentName" placeholder="Enter the student's name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="messageType">
+                            Message Type
+                        </label>
+
+                        <select id="messageType">
+                            <option value="daily" selected>
+                                Daily
+                            </option>
+
+                            <option value="weekly">
+                                Weekly
+                            </option>
+
+                            <option value="others">
+                                Others
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="topic">
+                        Main Topic
+                    </label>
+
+                    <input type="text" id="topic" placeholder="For example: Python Lists">
+                </div>
+
+                <div class="form-group">
+                    <label for="concepts">
+                        Concepts, Tasks or Assigned Work
+                    </label>
+
+                    <textarea id="concepts"
+                        placeholder="Describe the lesson, work, questions or instructions"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="deadline">
+                            Submission Date
+                        </label>
+
+                        <input type="date" id="deadline">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="submissionTime">
+                            Submission Time
+                        </label>
+
+                        <input type="time" id="submissionTime" value="17:00">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="links">
+                        Lesson or Assignment Links
+                    </label>
+
+                    <textarea id="links"
+                        placeholder="Enter one link per line.&#10;&#10;https://www.learnwithchampak.live/lesson-1&#10;https://youtu.be/example"></textarea>
+
+                    <p class="help-text">
+                        Enter as many links as required. Put each link
+                        on a separate line.
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <label for="teacherNote">
+                        Teacher's Note
+                    </label>
+
+                    <textarea id="teacherNote" placeholder="Add feedback, instructions or encouragement"></textarea>
+                </div>
+
+                <div class="button-row">
+                    <button type="button" class="preview-button" id="previewButton">
+                        Preview Message
+                    </button>
+
+                    <button type="submit" class="share-button">
+                        Select WhatsApp and Send
+                    </button>
+                </div>
+
+                <div class="secondary-buttons">
+                    <button type="button" class="copy-button" id="copyButton">
+                        Copy Message
+                    </button>
+
+                    <button type="reset" class="reset-button">
+                        Clear Form
+                    </button>
+                </div>
+
+                <p id="statusMessage" class="status-message" aria-live="polite">
+                </p>
+            </form>
+
+            <section class="preview-section" id="previewSection">
+
+                <h3>Message Preview</h3>
+
+                <p id="messagePreview"></p>
+            </section>
+
+            <div class="information-box">
+                Today’s date is added automatically at the beginning of
+                every message. The message also includes a reply link
+                for Champak and the Programmer's Picnic WhatsApp group.
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        Programmer's Picnic by Champak Roy<br>
+        AI/ML, Python, DSA and Web Development
+    </footer>
+
+    <script>
+        "use strict";
+
+        const form =
+            document.getElementById("studentForm");
+
+        const deadlineInput =
+            document.getElementById("deadline");
+
+        const submissionTimeInput =
+            document.getElementById("submissionTime");
+
+        const previewSection =
+            document.getElementById("previewSection");
+
+        const messagePreview =
+            document.getElementById("messagePreview");
+
+        const statusMessage =
+            document.getElementById("statusMessage");
+
+        const previewButton =
+            document.getElementById("previewButton");
+
+        const copyButton =
+            document.getElementById("copyButton");
+
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            if (!validateForm()) {
+                return;
+            }
+
+            await shareMessage();
+        });
+
+        previewButton.addEventListener(
+            "click",
+            previewMessage
+        );
+
+        copyButton.addEventListener(
+            "click",
+            copyMessage
+        );
+
+        form.addEventListener("reset", function () {
+            window.setTimeout(function () {
+                setDefaultDateAndTime();
+                clearPreview();
+                clearStatus();
+            }, 0);
+        });
+
+        function getValue(id) {
+            return document
+                .getElementById(id)
+                .value
+                .trim();
+        }
+
+        function getLocalDateValue(date) {
+            const year = date.getFullYear();
+
+            const month = String(
+                date.getMonth() + 1
+            ).padStart(2, "0");
+
+            const day = String(
+                date.getDate()
+            ).padStart(2, "0");
+
+            return `${year}-${month}-${day}`;
+        }
+
+        function setDefaultDateAndTime() {
+            deadlineInput.value =
+                getLocalDateValue(new Date());
+
+            submissionTimeInput.value = "17:00";
+        }
+
+        function validateForm() {
+            clearStatus();
+
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return false;
+            }
+
+            if (!getValue("studentName")) {
+                showStatus(
+                    "Please enter the student's name.",
+                    "error"
+                );
+
+                document
+                    .getElementById("studentName")
+                    .focus();
+
+                return false;
+            }
+
+            return true;
+        }
+
+        function formatDate(dateValue) {
+            if (!dateValue) {
+                return "Not specified";
+            }
+
+            const date =
+                new Date(dateValue + "T00:00:00");
+
+            return date.toLocaleDateString(
+                "en-IN",
+                {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                }
+            );
+        }
+
+        function formatTime(timeValue) {
+            if (!timeValue) {
+                return "Not specified";
+            }
+
+            const parts = timeValue.split(":");
+            const date = new Date();
+
+            date.setHours(Number(parts[0]));
+            date.setMinutes(Number(parts[1]));
+            date.setSeconds(0);
+
+            return date.toLocaleTimeString(
+                "en-IN",
+                {
+                    hour: "numeric",
+                    minute: "2-digit"
+                }
+            );
+        }
+
+        function getTodayMessageDate() {
+            return new Date().toLocaleDateString(
+                "en-IN",
+                {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                }
+            );
+        }
+
+        function getLinks() {
+            return getValue("links")
+                .split(/\r?\n/)
+                .map(function (link) {
+                    return link.trim();
+                })
+                .filter(function (link) {
+                    return link.length > 0;
+                });
+        }
+
+        function createLinksSection() {
+            const links = getLinks();
+
+            if (links.length === 0) {
+                return "";
+            }
+
+            let linksText = "\n\n";
+
+            linksText += links.length === 1
+                ? "Lesson or assignment link:\n"
+                : "Lesson or assignment links:\n";
+
+            links.forEach(function (link, index) {
+                if (links.length === 1) {
+                    linksText += link;
+                } else {
+                    linksText +=
+                        `${index + 1}. ${link}`;
+
+                    if (index < links.length - 1) {
+                        linksText += "\n";
+                    }
+                }
+            });
+
+            return linksText;
+        }
+
+        function createMessage() {
+            const studentName =
+                getValue("studentName");
+
+            const selectedType =
+                getValue("messageType");
+
+            const topic =
+                getValue("topic") || "Not specified";
+
+            const concepts =
+                getValue("concepts") || "Not specified";
+
+            const deadline =
+                formatDate(getValue("deadline"));
+
+            const submissionTime =
+                formatTime(getValue("submissionTime"));
+
+            const teacherNote =
+                getValue("teacherNote");
+
+            const messageDate =
+                getTodayMessageDate();
+
+            let message = "";
+
+            if (selectedType === "daily") {
+                message =
+                    `Date: ${messageDate}
+
+Good morning, ${studentName}.
+
+Today's Learning Target
+
+Topic: ${topic}
+
+Concepts, tasks or assigned work:
+${concepts}
+
+Submission date: ${deadline}
+Submission time: ${submissionTime}
+
+Focus on understanding the topic properly and complete the assigned work carefully.
+
+Please send your work, progress report, code or screenshots after completion.`;
+            }
+
+            else if (selectedType === "weekly") {
+                message =
+                    `Date: ${messageDate}
+
+Good morning, ${studentName}.
+
+Your Weekly Learning Plan
+
+Main topic: ${topic}
+
+Concepts, tasks or assigned work:
+${concepts}
+
+Submission deadline: ${deadline}
+Submission time: ${submissionTime}
+
+Please complete the assigned work steadily throughout the week.
+
+Do not only complete the tasks. Make sure that you understand the concepts and can explain them clearly in your own words.
+
+Please confirm receipt by replying:
+"Weekly plan received."`;
+            }
+
+            else {
+                message =
+                    `Date: ${messageDate}
+
+Hello ${studentName}.
+
+Topic: ${topic}
+
+Message or instructions:
+${concepts}
+
+Submission date: ${deadline}
+Submission time: ${submissionTime}`;
+            }
+
+            message += createLinksSection();
+
+            if (teacherNote) {
+                message +=
+                    `\n\nTeacher's note:\n${teacherNote}`;
+            }
+
+            message +=
+                `\n\nReply to Champak:
+https://wa.me/919335874326?text=Hello%20Champak%20Sir%2C%20I%20am%20replying%20regarding%20my%20learning%20task.
+
+Join the Programmer's Picnic WhatsApp Group:
+https://chat.whatsapp.com/HXE4pjLVrUfDkEioE0Cci0
+
+Programmer's Picnic by Champak Roy`;
+
+            return message;
+        }
+
+        function previewMessage() {
+            if (!validateForm()) {
+                return;
+            }
+
+            messagePreview.textContent =
+                createMessage();
+
+            previewSection.style.display =
+                "block";
+
+            previewSection.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
+
+        async function shareMessage() {
+            const message = createMessage();
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: "Student Learning Message",
+                        text: message
+                    });
+
+                    showStatus(
+                        "The message was shared successfully.",
+                        "success"
+                    );
+
+                    return;
+                }
+                catch (error) {
+                    if (error.name === "AbortError") {
+                        showStatus(
+                            "Sharing was cancelled.",
+                            "error"
+                        );
+
+                        return;
+                    }
+
+                    console.error(
+                        "Web Share API error:",
+                        error
+                    );
+                }
+            }
+
+            const whatsappUrl =
+                "https://wa.me/?text=" +
+                encodeURIComponent(message);
+
+            const newWindow = window.open(
+                whatsappUrl,
+                "_blank",
+                "noopener,noreferrer"
+            );
+
+            if (!newWindow) {
+                showStatus(
+                    "The browser blocked the new window. Please allow pop-ups or copy the message.",
+                    "error"
+                );
+            }
+        }
+
+        async function copyMessage() {
+            if (!validateForm()) {
+                return;
+            }
+
+            const message = createMessage();
+
+            try {
+                await navigator.clipboard.writeText(
+                    message
+                );
+
+                showStatus(
+                    "Message copied. You can paste it into WhatsApp.",
+                    "success"
+                );
+            }
+            catch (error) {
+                fallbackCopy(message);
+            }
+        }
+
+        function fallbackCopy(message) {
+            const temporaryTextArea =
+                document.createElement("textarea");
+
+            temporaryTextArea.value = message;
+            temporaryTextArea.style.position = "fixed";
+            temporaryTextArea.style.opacity = "0";
+
+            document.body.appendChild(
+                temporaryTextArea
+            );
+
+            temporaryTextArea.focus();
+            temporaryTextArea.select();
+
+            try {
+                document.execCommand("copy");
+
+                showStatus(
+                    "Message copied. You can paste it into WhatsApp.",
+                    "success"
+                );
+            }
+            catch (error) {
+                showStatus(
+                    "The message could not be copied automatically.",
+                    "error"
+                );
+            }
+
+            temporaryTextArea.remove();
+        }
+
+        function showStatus(text, type) {
+            statusMessage.textContent = text;
+
+            statusMessage.className =
+                "status-message " +
+                (
+                    type === "success"
+                        ? "status-success"
+                        : "status-error"
+                );
+        }
+
+        function clearStatus() {
+            statusMessage.textContent = "";
+            statusMessage.className =
+                "status-message";
+        }
+
+        function clearPreview() {
+            previewSection.style.display = "none";
+            messagePreview.textContent = "";
+        }
+
+        setDefaultDateAndTime();
+    </script>
+
+</body>
+
+</html>
