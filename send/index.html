@@ -12,11 +12,11 @@
 
     <meta
         name="description"
-        content="Create personalised student learning messages with links and pasted images, share through WhatsApp and save sent messages in the browser.">
+        content="Create personalised student learning messages, share them through WhatsApp and save sent messages in Local Storage for reuse.">
 
     <meta
         name="keywords"
-        content="student learning message, WhatsApp student message, saved messages, local storage, Programmer's Picnic, Champak Roy">
+        content="student learning message, WhatsApp student message, saved messages, Local Storage, Programmer's Picnic, Champak Roy">
 
     <meta name="author" content="Champak Roy">
     <meta name="theme-color" content="#1769aa">
@@ -881,25 +881,22 @@
                 </div>
 
                 <p class="storage-note">
-                    Messages are saved only in this browser using Local
-                    Storage. Clearing browser data may remove them.
-                    Messages containing large image Data URLs may use a
-                    large amount of storage.
+                    Use Message restores the student's name, message
+                    type, topic, work, date, time, links, note and saved
+                    images into the form.
                 </p>
             </section>
 
             <div class="information-box">
-                Greetings, headings, encouragement and closing lines are
-                selected randomly. Preview, Copy and Send use the same
-                generated version until the form is edited or a new
-                version is requested.
+                Sent messages are stored in this browser. Use Message
+                restores the saved information into the form so it can
+                be edited and sent again.
             </div>
 
             <div class="warning-box">
                 Image Data URLs can be extremely long. Large images may
                 make the WhatsApp message too long and may exceed the
-                browser's Local Storage capacity. Small compressed
-                screenshots are more likely to work.
+                browser's Local Storage capacity.
             </div>
         </section>
     </main>
@@ -1150,7 +1147,7 @@
                     await copySavedMessage(messageId);
                 }
                 else if (action === "send") {
-                    sendSavedMessage(messageId);
+                    await sendSavedMessage(messageId);
                 }
                 else if (action === "delete") {
                     deleteSavedMessage(messageId);
@@ -1164,12 +1161,11 @@
                 button.addEventListener(
                     "click",
                     function () {
-                        const imageNumber =
+                        removeImage(
                             Number(
                                 button.dataset.imageNumber
-                            );
-
-                        removeImage(imageNumber);
+                            )
+                        );
                     }
                 );
             });
@@ -1201,13 +1197,23 @@
                 .trim();
         }
 
-        function randomItem(items) {
-            const randomIndex =
-                Math.floor(
-                    Math.random() * items.length
-                );
+        function setValue(
+            id,
+            value
+        ) {
+            document
+                .getElementById(id)
+                .value =
+                    value || "";
+        }
 
-            return items[randomIndex];
+        function randomItem(items) {
+            return items[
+                Math.floor(
+                    Math.random() *
+                    items.length
+                )
+            ];
         }
 
         function invalidateCachedMessage() {
@@ -1342,9 +1348,7 @@
                 .map(function (link) {
                     return link.trim();
                 })
-                .filter(function (link) {
-                    return link.length > 0;
-                });
+                .filter(Boolean);
         }
 
         function createLinksSection() {
@@ -1365,19 +1369,16 @@
 
             links.forEach(
                 function (link, index) {
-                    if (links.length === 1) {
-                        linksText += link;
-                    }
-                    else {
-                        linksText +=
-                            `${index + 1}. ${link}`;
+                    linksText +=
+                        links.length === 1
+                            ? link
+                            : `${index + 1}. ${link}`;
 
-                        if (
-                            index <
-                            links.length - 1
-                        ) {
-                            linksText += "\n";
-                        }
+                    if (
+                        index <
+                        links.length - 1
+                    ) {
+                        linksText += "\n";
                     }
                 }
             );
@@ -1418,19 +1419,6 @@
                     }
                 );
 
-                pasteZone.addEventListener(
-                    "keydown",
-                    function (event) {
-                        if (
-                            event.key === "Enter" ||
-                            event.key === " "
-                        ) {
-                            event.preventDefault();
-                            pasteZone.focus();
-                        }
-                    }
-                );
-
                 fileInput.addEventListener(
                     "change",
                     function () {
@@ -1458,15 +1446,12 @@
 
             if (!clipboardItems) {
                 showStatus(
-                    "Clipboard image access is not available in this browser.",
+                    "Clipboard image access is not available.",
                     "error"
                 );
 
                 return;
             }
-
-            let imageFound =
-                false;
 
             for (const item of clipboardItems) {
                 if (
@@ -1477,30 +1462,23 @@
                     const imageFile =
                         item.getAsFile();
 
-                    if (!imageFile) {
-                        continue;
+                    if (imageFile) {
+                        event.preventDefault();
+
+                        processImageFile(
+                            imageFile,
+                            imageNumber
+                        );
+
+                        return;
                     }
-
-                    imageFound =
-                        true;
-
-                    event.preventDefault();
-
-                    processImageFile(
-                        imageFile,
-                        imageNumber
-                    );
-
-                    break;
                 }
             }
 
-            if (!imageFound) {
-                showStatus(
-                    "No image was found in the clipboard.",
-                    "error"
-                );
-            }
+            showStatus(
+                "No image was found in the clipboard.",
+                "error"
+            );
         }
 
         function processImageFile(
@@ -1513,7 +1491,7 @@
                 )
             ) {
                 showStatus(
-                    "Please paste or select an image file.",
+                    "Please select an image file.",
                     "error"
                 );
 
@@ -1535,7 +1513,7 @@
                     ] = {
                         fileName:
                             imageFile.name ||
-                            `pasted-image-${imageNumber}`,
+                            `image-${imageNumber}`,
 
                         mimeType:
                             imageFile.type,
@@ -1552,16 +1530,8 @@
                     invalidateCachedMessage();
 
                     showStatus(
-                        `Image ${imageNumber} was converted into a Data URL.`,
+                        `Image ${imageNumber} was added.`,
                         "success"
-                    );
-                };
-
-            reader.onerror =
-                function () {
-                    showStatus(
-                        `Image ${imageNumber} could not be read.`,
-                        "error"
                     );
                 };
 
@@ -1634,18 +1604,10 @@
                     `imageFile${imageNumber}`
                 );
 
-            preview.removeAttribute(
-                "src"
-            );
-
-            preview.style.display =
-                "none";
-
-            dataField.value =
-                "";
-
-            fileInput.value =
-                "";
+            preview.removeAttribute("src");
+            preview.style.display = "none";
+            dataField.value = "";
+            fileInput.value = "";
 
             pasteZone.textContent =
                 `Tap here and paste Image ${imageNumber}`;
@@ -1729,9 +1691,7 @@ ${image.dataUrl}`;
 
             const submissionTime =
                 formatTime(
-                    getValue(
-                        "submissionTime"
-                    )
+                    getValue("submissionTime")
                 );
 
             const teacherNote =
@@ -1748,35 +1708,13 @@ ${image.dataUrl}`;
             let message =
                 "";
 
-            if (
-                selectedType === "daily"
-            ) {
-                const greeting =
-                    randomItem(
-                        greetings.morning
-                    );
-
-                const heading =
-                    randomItem(
-                        dailyHeadings
-                    );
-
-                const encouragement =
-                    randomItem(
-                        dailyEncouragements
-                    );
-
-                const submissionReminder =
-                    randomItem(
-                        submissionReminders
-                    );
-
+            if (selectedType === "daily") {
                 message =
 `Date: ${messageDate}
 
-${greeting}, ${studentName}.
+${randomItem(greetings.morning)}, ${studentName}.
 
-${heading}
+${randomItem(dailyHeadings)}
 
 Topic: ${topic}
 
@@ -1786,47 +1724,21 @@ ${concepts}
 Submission date: ${deadline}
 Submission time: ${submissionTime}
 
-${encouragement}
+${randomItem(dailyEncouragements)}
 
-${submissionReminder}
+${randomItem(submissionReminders)}
 
 ${motivation}`;
             }
-
             else if (
                 selectedType === "weekly"
             ) {
-                const greeting =
-                    randomItem(
-                        greetings.morning
-                    );
-
-                const heading =
-                    randomItem(
-                        weeklyHeadings
-                    );
-
-                const weeklyEncouragement =
-                    randomItem(
-                        weeklyEncouragements
-                    );
-
-                const understandingReminder =
-                    randomItem(
-                        understandingReminders
-                    );
-
-                const confirmation =
-                    randomItem(
-                        confirmationRequests
-                    );
-
                 message =
 `Date: ${messageDate}
 
-${greeting}, ${studentName}.
+${randomItem(greetings.morning)}, ${studentName}.
 
-${heading}
+${randomItem(weeklyHeadings)}
 
 Main topic: ${topic}
 
@@ -1836,32 +1748,21 @@ ${concepts}
 Submission deadline: ${deadline}
 Submission time: ${submissionTime}
 
-${weeklyEncouragement}
+${randomItem(weeklyEncouragements)}
 
-${understandingReminder}
+${randomItem(understandingReminders)}
 
-${confirmation}
+${randomItem(confirmationRequests)}
 
 ${motivation}`;
             }
-
             else {
-                const greeting =
-                    randomItem(
-                        greetings.general
-                    );
-
-                const heading =
-                    randomItem(
-                        otherHeadings
-                    );
-
                 message =
 `Date: ${messageDate}
 
-${greeting}, ${studentName}.
+${randomItem(greetings.general)}, ${studentName}.
 
-${heading}
+${randomItem(otherHeadings)}
 
 Topic: ${topic}
 
@@ -1934,11 +1835,6 @@ Programmer's Picnic by Champak Roy`;
                 "A new message variation has been generated.",
                 "success"
             );
-
-            previewSection.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
         }
 
         async function shareMessage() {
@@ -1955,17 +1851,12 @@ Programmer's Picnic by Champak Roy`;
                             message
                     });
 
-                    const wasSaved =
-                        saveSentMessage(
-                            message
-                        );
+                    saveSentMessage(message);
 
-                    if (wasSaved) {
-                        showStatus(
-                            "The message was shared and saved in Sent Messages.",
-                            "success"
-                        );
-                    }
+                    showStatus(
+                        "The message was shared and saved.",
+                        "success"
+                    );
 
                     return;
                 }
@@ -1975,25 +1866,18 @@ Programmer's Picnic by Champak Roy`;
                         "AbortError"
                     ) {
                         showStatus(
-                            "Sharing was cancelled. The message was not saved.",
+                            "Sharing was cancelled.",
                             "error"
                         );
 
                         return;
                     }
-
-                    console.error(
-                        "Web Share API error:",
-                        error
-                    );
                 }
             }
 
             const whatsappUrl =
                 "https://wa.me/?text=" +
-                encodeURIComponent(
-                    message
-                );
+                encodeURIComponent(message);
 
             const newWindow =
                 window.open(
@@ -2004,24 +1888,19 @@ Programmer's Picnic by Champak Roy`;
 
             if (!newWindow) {
                 showStatus(
-                    "The browser blocked the new window. Please allow pop-ups or copy the message.",
+                    "The browser blocked WhatsApp.",
                     "error"
                 );
 
                 return;
             }
 
-            const wasSaved =
-                saveSentMessage(
-                    message
-                );
+            saveSentMessage(message);
 
-            if (wasSaved) {
-                showStatus(
-                    "The message was opened in WhatsApp and saved in Sent Messages.",
-                    "success"
-                );
-            }
+            showStatus(
+                "The message was opened in WhatsApp and saved.",
+                "success"
+            );
         }
 
         async function copyMessage() {
@@ -2029,23 +1908,24 @@ Programmer's Picnic by Champak Roy`;
                 return;
             }
 
-            const message =
-                getPreparedMessage();
+            await copyText(
+                getPreparedMessage()
+            );
+        }
 
+        async function copyText(text) {
             try {
                 await navigator
                     .clipboard
-                    .writeText(message);
+                    .writeText(text);
 
                 showStatus(
-                    "Message copied. You can paste it into WhatsApp.",
+                    "Message copied.",
                     "success"
                 );
             }
             catch (error) {
-                fallbackCopy(
-                    message
-                );
+                fallbackCopy(text);
             }
         }
 
@@ -2068,53 +1948,29 @@ Programmer's Picnic by Champak Roy`;
                 temporaryTextArea
             );
 
-            temporaryTextArea.focus();
             temporaryTextArea.select();
 
-            try {
-                document.execCommand(
-                    "copy"
-                );
-
-                showStatus(
-                    "Message copied. You can paste it into WhatsApp.",
-                    "success"
-                );
-            }
-            catch (error) {
-                showStatus(
-                    "The message could not be copied automatically.",
-                    "error"
-                );
-            }
+            document.execCommand(
+                "copy"
+            );
 
             temporaryTextArea.remove();
+
+            showStatus(
+                "Message copied.",
+                "success"
+            );
         }
 
         function getSavedMessages() {
             try {
-                const storedValue =
+                return JSON.parse(
                     localStorage.getItem(
                         SAVED_MESSAGES_KEY
-                    );
-
-                if (!storedValue) {
-                    return [];
-                }
-
-                const parsedValue =
-                    JSON.parse(storedValue);
-
-                return Array.isArray(parsedValue)
-                    ? parsedValue
-                    : [];
+                    )
+                ) || [];
             }
             catch (error) {
-                console.error(
-                    "Could not read saved messages:",
-                    error
-                );
-
                 return [];
             }
         }
@@ -2142,16 +1998,48 @@ Programmer's Picnic by Champak Roy`;
                     createSavedMessageId(),
 
                 studentName:
-                    getValue("studentName") ||
-                    "Student",
+                    getValue("studentName"),
 
                 messageType:
-                    getValue("messageType") ||
-                    "others",
+                    getValue("messageType"),
 
                 topic:
-                    getValue("topic") ||
-                    "Learning Message",
+                    getValue("topic"),
+
+                concepts:
+                    getValue("concepts"),
+
+                deadline:
+                    getValue("deadline"),
+
+                submissionTime:
+                    getValue("submissionTime"),
+
+                links:
+                    getValue("links"),
+
+                teacherNote:
+                    getValue("teacherNote"),
+
+                images:
+                    pastedImages.map(
+                        function (image) {
+                            if (!image) {
+                                return null;
+                            }
+
+                            return {
+                                fileName:
+                                    image.fileName,
+
+                                mimeType:
+                                    image.mimeType,
+
+                                dataUrl:
+                                    image.dataUrl
+                            };
+                        }
+                    ),
 
                 message:
                     message,
@@ -2183,33 +2071,8 @@ Programmer's Picnic by Champak Roy`;
                 return true;
             }
             catch (error) {
-                while (messages.length > 1) {
-                    messages.pop();
-
-                    try {
-                        writeSavedMessages(
-                            messages
-                        );
-
-                        renderSavedMessages();
-
-                        showStatus(
-                            "The message was saved, but older messages were removed because browser storage was full.",
-                            "success"
-                        );
-
-                        return true;
-                    }
-                    catch (storageError) {
-                        console.error(
-                            "Local Storage is still full:",
-                            storageError
-                        );
-                    }
-                }
-
                 showStatus(
-                    "The message was shared, but it was too large to save. Remove or compress large images.",
+                    "The message was sent but could not be saved. The images may be too large.",
                     "error"
                 );
 
@@ -2218,18 +2081,9 @@ Programmer's Picnic by Champak Roy`;
         }
 
         function formatSavedDate(dateValue) {
-            const date =
-                new Date(dateValue);
-
-            if (
-                Number.isNaN(
-                    date.getTime()
-                )
-            ) {
-                return "Date unavailable";
-            }
-
-            return date.toLocaleString(
+            return new Date(
+                dateValue
+            ).toLocaleString(
                 "en-IN",
                 {
                     day: "numeric",
@@ -2239,35 +2093,6 @@ Programmer's Picnic by Champak Roy`;
                     minute: "2-digit"
                 }
             );
-        }
-
-        function createHistoryButton(
-            text,
-            className,
-            action,
-            messageId
-        ) {
-            const button =
-                document.createElement(
-                    "button"
-                );
-
-            button.type =
-                "button";
-
-            button.textContent =
-                text;
-
-            button.className =
-                className;
-
-            button.dataset.action =
-                action;
-
-            button.dataset.messageId =
-                messageId;
-
-            return button;
         }
 
         function renderSavedMessages() {
@@ -2285,19 +2110,19 @@ Programmer's Picnic by Champak Roy`;
                 messages.length === 0;
 
             if (messages.length === 0) {
-                const emptyMessage =
+                const empty =
                     document.createElement(
                         "p"
                     );
 
-                emptyMessage.className =
+                empty.className =
                     "empty-history-message";
 
-                emptyMessage.textContent =
-                    "No sent messages have been saved yet. A message will appear here after it is shared or opened in WhatsApp.";
+                empty.textContent =
+                    "No sent messages have been saved yet.";
 
                 savedMessagesList.appendChild(
-                    emptyMessage
+                    empty
                 );
 
                 return;
@@ -2313,131 +2138,99 @@ Programmer's Picnic by Champak Roy`;
                     card.className =
                         "saved-message-card";
 
-                    const header =
-                        document.createElement(
-                            "div"
-                        );
+                    card.innerHTML =
+`<div class="saved-message-card-header">
+    <div>
+        <h4></h4>
+        <p class="saved-message-date"></p>
+    </div>
 
-                    header.className =
-                        "saved-message-card-header";
+    <span class="saved-message-type"></span>
+</div>
 
-                    const headingArea =
-                        document.createElement(
-                            "div"
-                        );
+<strong class="saved-message-topic"></strong>
 
-                    const heading =
-                        document.createElement(
-                            "h4"
-                        );
+<div class="saved-message-text"></div>
 
-                    heading.textContent =
-                        savedMessage.studentName ||
-                        "Student";
+<div class="saved-message-actions">
+    <button
+        type="button"
+        class="use-saved-button"
+        data-action="use">
+        Use Message
+    </button>
 
-                    const savedDate =
-                        document.createElement(
-                            "p"
-                        );
+    <button
+        type="button"
+        class="copy-saved-button"
+        data-action="copy">
+        Copy
+    </button>
 
-                    savedDate.className =
-                        "saved-message-date";
+    <button
+        type="button"
+        class="send-saved-button"
+        data-action="send">
+        Send Again
+    </button>
 
-                    savedDate.textContent =
-                        formatSavedDate(
-                            savedMessage.savedAt
-                        );
+    <button
+        type="button"
+        class="delete-saved-button"
+        data-action="delete">
+        Delete
+    </button>
+</div>`;
 
-                    headingArea.append(
-                        heading,
-                        savedDate
-                    );
+                    card
+                        .querySelector("h4")
+                        .textContent =
+                            savedMessage.studentName ||
+                            "Student";
 
-                    const typeLabel =
-                        document.createElement(
-                            "span"
-                        );
-
-                    typeLabel.className =
-                        "saved-message-type";
-
-                    typeLabel.textContent =
-                        savedMessage.messageType ||
-                        "others";
-
-                    header.append(
-                        headingArea,
-                        typeLabel
-                    );
-
-                    const topic =
-                        document.createElement(
-                            "strong"
-                        );
-
-                    topic.className =
-                        "saved-message-topic";
-
-                    topic.textContent =
-                        savedMessage.topic ||
-                        "Learning Message";
-
-                    const messageText =
-                        document.createElement(
-                            "div"
-                        );
-
-                    messageText.className =
-                        "saved-message-text";
-
-                    messageText.textContent =
-                        savedMessage.message ||
-                        "";
-
-                    const actions =
-                        document.createElement(
-                            "div"
-                        );
-
-                    actions.className =
-                        "saved-message-actions";
-
-                    actions.append(
-                        createHistoryButton(
-                            "Use Message",
-                            "use-saved-button",
-                            "use",
-                            savedMessage.id
-                        ),
-
-                        createHistoryButton(
-                            "Copy",
-                            "copy-saved-button",
-                            "copy",
-                            savedMessage.id
-                        ),
-
-                        createHistoryButton(
-                            "Send Again",
-                            "send-saved-button",
-                            "send",
-                            savedMessage.id
-                        ),
-
-                        createHistoryButton(
-                            "Delete",
-                            "delete-saved-button",
-                            "delete",
-                            savedMessage.id
+                    card
+                        .querySelector(
+                            ".saved-message-date"
                         )
-                    );
+                        .textContent =
+                            formatSavedDate(
+                                savedMessage.savedAt
+                            );
 
-                    card.append(
-                        header,
-                        topic,
-                        messageText,
-                        actions
-                    );
+                    card
+                        .querySelector(
+                            ".saved-message-type"
+                        )
+                        .textContent =
+                            savedMessage.messageType ||
+                            "others";
+
+                    card
+                        .querySelector(
+                            ".saved-message-topic"
+                        )
+                        .textContent =
+                            savedMessage.topic ||
+                            "Learning Message";
+
+                    card
+                        .querySelector(
+                            ".saved-message-text"
+                        )
+                        .textContent =
+                            savedMessage.message ||
+                            "";
+
+                    card
+                        .querySelectorAll(
+                            "button[data-action]"
+                        )
+                        .forEach(
+                            function (button) {
+                                button.dataset.messageId =
+                                    savedMessage.id;
+                            }
+                        );
 
                     savedMessagesList.appendChild(
                         card
@@ -2446,54 +2239,21 @@ Programmer's Picnic by Champak Roy`;
             );
         }
 
-        function findSavedMessage(messageId) {
+        function findSavedMessage(
+            messageId
+        ) {
             return getSavedMessages()
                 .find(
-                    function (savedMessage) {
+                    function (message) {
                         return (
-                            savedMessage.id ===
+                            message.id ===
                             messageId
                         );
                     }
                 );
         }
 
-        function useSavedMessage(messageId) {
-            const savedMessage =
-                findSavedMessage(
-                    messageId
-                );
-
-            if (!savedMessage) {
-                showStatus(
-                    "The saved message could not be found.",
-                    "error"
-                );
-
-                return;
-            }
-
-            cachedMessage =
-                savedMessage.message;
-
-            messagePreview.textContent =
-                savedMessage.message;
-
-            previewSection.style.display =
-                "block";
-
-            showStatus(
-                "The saved message has been loaded into the preview.",
-                "success"
-            );
-
-            previewSection.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-        }
-
-        async function copySavedMessage(
+        function useSavedMessage(
             messageId
         ) {
             const savedMessage =
@@ -2510,18 +2270,130 @@ Programmer's Picnic by Champak Roy`;
                 return;
             }
 
-            try {
-                await navigator.clipboard.writeText(
-                    savedMessage.message
-                );
+            setValue(
+                "studentName",
+                savedMessage.studentName
+            );
 
-                showStatus(
-                    "The saved message was copied.",
-                    "success"
+            setValue(
+                "messageType",
+                savedMessage.messageType ||
+                "daily"
+            );
+
+            setValue(
+                "topic",
+                savedMessage.topic
+            );
+
+            setValue(
+                "concepts",
+                savedMessage.concepts
+            );
+
+            setValue(
+                "deadline",
+                savedMessage.deadline ||
+                getLocalDateValue(
+                    new Date()
+                )
+            );
+
+            setValue(
+                "submissionTime",
+                savedMessage.submissionTime ||
+                "17:00"
+            );
+
+            setValue(
+                "links",
+                savedMessage.links
+            );
+
+            setValue(
+                "teacherNote",
+                savedMessage.teacherNote
+            );
+
+            removeImage(1, false);
+            removeImage(2, false);
+            removeImage(3, false);
+
+            if (
+                Array.isArray(
+                    savedMessage.images
+                )
+            ) {
+                savedMessage.images.forEach(
+                    function (
+                        image,
+                        index
+                    ) {
+                        if (
+                            !image ||
+                            !image.dataUrl ||
+                            index > 2
+                        ) {
+                            return;
+                        }
+
+                        pastedImages[index] = {
+                            fileName:
+                                image.fileName ||
+                                `saved-image-${index + 1}`,
+
+                            mimeType:
+                                image.mimeType ||
+                                "image/jpeg",
+
+                            dataUrl:
+                                image.dataUrl
+                        };
+
+                        displayImage(
+                            index + 1,
+                            image.dataUrl
+                        );
+                    }
                 );
             }
-            catch (error) {
-                fallbackCopy(
+
+            cachedMessage =
+                savedMessage.message ||
+                "";
+
+            if (cachedMessage) {
+                messagePreview.textContent =
+                    cachedMessage;
+
+                previewSection.style.display =
+                    "block";
+            }
+            else {
+                clearPreview();
+            }
+
+            showStatus(
+                "The saved message has been restored to the form.",
+                "success"
+            );
+
+            form.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
+
+        async function copySavedMessage(
+            messageId
+        ) {
+            const savedMessage =
+                findSavedMessage(
+                    messageId
+                );
+
+            if (savedMessage) {
+                await copyText(
                     savedMessage.message
                 );
             }
@@ -2536,11 +2408,6 @@ Programmer's Picnic by Champak Roy`;
                 );
 
             if (!savedMessage) {
-                showStatus(
-                    "The saved message could not be found.",
-                    "error"
-                );
-
                 return;
             }
 
@@ -2566,41 +2433,18 @@ Programmer's Picnic by Champak Roy`;
                         error.name ===
                         "AbortError"
                     ) {
-                        showStatus(
-                            "Sharing was cancelled.",
-                            "error"
-                        );
-
                         return;
                     }
                 }
             }
 
-            const whatsappUrl =
+            window.open(
                 "https://wa.me/?text=" +
                 encodeURIComponent(
                     savedMessage.message
-                );
-
-            const newWindow =
-                window.open(
-                    whatsappUrl,
-                    "_blank",
-                    "noopener,noreferrer"
-                );
-
-            if (!newWindow) {
-                showStatus(
-                    "The browser blocked WhatsApp. Please allow pop-ups or copy the message.",
-                    "error"
-                );
-
-                return;
-            }
-
-            showStatus(
-                "The saved message was opened in WhatsApp.",
-                "success"
+                ),
+                "_blank",
+                "noopener,noreferrer"
             );
         }
 
@@ -2613,24 +2457,18 @@ Programmer's Picnic by Champak Roy`;
                 );
 
             if (!savedMessage) {
-                showStatus(
-                    "The saved message could not be found.",
-                    "error"
-                );
-
                 return;
             }
 
-            const shouldDelete =
-                window.confirm(
-                    `Delete the saved message for ${savedMessage.studentName}?`
-                );
-
-            if (!shouldDelete) {
+            if (
+                !window.confirm(
+                    `Delete the saved message for ${savedMessage.studentName || "this student"}?`
+                )
+            ) {
                 return;
             }
 
-            const updatedMessages =
+            const messages =
                 getSavedMessages()
                     .filter(
                         function (message) {
@@ -2641,40 +2479,24 @@ Programmer's Picnic by Champak Roy`;
                         }
                     );
 
-            try {
-                writeSavedMessages(
-                    updatedMessages
-                );
+            writeSavedMessages(
+                messages
+            );
 
-                renderSavedMessages();
+            renderSavedMessages();
 
-                showStatus(
-                    "The saved message was deleted.",
-                    "success"
-                );
-            }
-            catch (error) {
-                showStatus(
-                    "The message could not be deleted.",
-                    "error"
-                );
-            }
+            showStatus(
+                "The saved message was deleted.",
+                "success"
+            );
         }
 
         function deleteAllSavedMessages() {
-            const messages =
-                getSavedMessages();
-
-            if (messages.length === 0) {
-                return;
-            }
-
-            const shouldDelete =
-                window.confirm(
-                    `Delete all ${messages.length} saved messages? This action cannot be undone.`
-                );
-
-            if (!shouldDelete) {
+            if (
+                !window.confirm(
+                    "Delete all saved messages?"
+                )
+            ) {
                 return;
             }
 
