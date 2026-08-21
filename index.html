@@ -1615,17 +1615,42 @@
       }
 
       let section =
-        "\n\nPasted image Data URLs:";
+        "\n\nView attached images:";
 
       availableImages.forEach(
         function (image) {
+          const imageUrl =
+            createImageViewerUrl(
+              image.dataUrl
+            );
+
           section +=
             `\n\nImage ${image.number}:
-${image.dataUrl}`;
+${imageUrl}`;
         }
       );
 
       return section;
+    }
+
+    function createImageViewerUrl(dataUrl) {
+      const viewerUrl = new URL(
+        "image.html",
+        window.location.href
+      );
+
+      if (
+        viewerUrl.protocol === "http:"
+      ) {
+        viewerUrl.protocol = "https:";
+      }
+
+      viewerUrl.search = "";
+      viewerUrl.hash =
+        "image=" +
+        encodeURIComponent(dataUrl);
+
+      return viewerUrl.href;
     }
 
     function createMessage() {

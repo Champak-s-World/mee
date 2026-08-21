@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Shared Image</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+            background: #eef4fb;
+            color: #172033;
+            font-family: Arial, sans-serif;
+        }
+
+        main {
+            width: min(100%, 1100px);
+            padding: 20px;
+            border-radius: 16px;
+            background: #ffffff;
+            box-shadow: 0 12px 35px rgba(20, 45, 80, 0.16);
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0 0 18px;
+            font-size: clamp(1.35rem, 3vw, 2rem);
+        }
+
+        img {
+            display: none;
+            width: auto;
+            max-width: 100%;
+            max-height: calc(100vh - 150px);
+            margin: auto;
+            border-radius: 10px;
+            object-fit: contain;
+        }
+
+        .error {
+            display: none;
+            padding: 18px;
+            border: 1px solid #efb4b4;
+            border-radius: 10px;
+            background: #fff1f1;
+            color: #8b1e1e;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Shared Image</h1>
+        <img id="sharedImage" alt="Image shared through WhatsApp">
+        <p class="error" id="errorMessage">
+            The image is missing or the link is incomplete.
+        </p>
+    </main>
+
+    <script>
+        (function () {
+            const image = document.getElementById("sharedImage");
+            const errorMessage = document.getElementById("errorMessage");
+            const hash = window.location.hash.slice(1);
+            const prefix = "image=";
+
+            if (!hash.startsWith(prefix)) {
+                errorMessage.style.display = "block";
+                return;
+            }
+
+            try {
+                const imageData = decodeURIComponent(
+                    hash.slice(prefix.length)
+                );
+
+                if (!imageData.startsWith("data:image/")) {
+                    throw new Error("Invalid image data");
+                }
+
+                image.addEventListener("load", function () {
+                    image.style.display = "block";
+                });
+
+                image.addEventListener("error", function () {
+                    errorMessage.style.display = "block";
+                });
+
+                image.src = imageData;
+            }
+            catch (error) {
+                errorMessage.style.display = "block";
+            }
+        }());
+    </script>
+</body>
+</html>
